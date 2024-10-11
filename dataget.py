@@ -1,8 +1,8 @@
 from bs4 import BeautifulSoup
-import pandas
 import requests
 import re
 import linkget
+import pandas
 
 class Result:
 
@@ -14,9 +14,10 @@ class Result:
         self.percent = percent
         self.mandates = mandates
 
+df_init = {"year" : [1945,1946], "Name" : ["Sozialistische Partei Österreich", "Österreichische Volksparte"], "Abbr" : ["SPö", "ÖVP"] , "Votes" : [120, 1200], "Percent" : [30, 49], "Mandates" : [19,29]}
+df = pandas.DataFrame(data=df_init)
 
 def process_data(url):
-
 
     print(url)
     page = requests.get(url)
@@ -37,8 +38,6 @@ def process_data(url):
             content.append(td_list)
 
 
-
-
     content_cleaned = [i for i in content if i != ["",""]]
     content_cleaned = [[i for i in l if i] for l in content_cleaned]
 
@@ -47,24 +46,40 @@ def process_data(url):
 
     for t in content_cleaned:
 
+        df.loc[len(df)] = [re.findall((r"\d{4}"), url), t[0],t[1],int(re.sub("\.|,", "", t[2])), float(t[3].replace(",",".")), t[4]]
+
         res = Result(re.findall((r"\d{4}"), url), t[0],t[1],int(re.sub("\.|,", "", t[2])), float(t[3].replace(",",".")), t[4])
+        """
         print(res.year)
         print(res.name)
         print(res.nameabbr)
         print(res.votes)
         print(res.percent)
         print(res.mandates)       
-        
+                
+        """
+
 
 
 
     return res
 
 
+def get_full_data():
 
-for link in linkget.get_all_links():
-    process_data(link)
+    all_results = []
 
+    for link in linkget.get_all_links():
 
+        try:
+            all_results.append(process_data(link))
+        except:
+            print(f"invalid formatting on {link} moving on")
+        #process_data(link)
 
+    return all_results
+
+get_full_data()
+print(df)
+df.to_csv(r"C:\Users\stefa\Desktop\results_unfiltered.csv", header=True)
 #process_data("https://www.bmi.gv.at/412/Nationalratswahlen/Nationalratswahl_1962/start.aspx")
