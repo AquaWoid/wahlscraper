@@ -1,5 +1,10 @@
+"""
+Lukas Waldhofer - 2024
+Script to extract election results from pre-formated html files that had incorrect formatting on the original webpage.
+"""
+
 from bs4 import BeautifulSoup
-import os
+import sys, os
 import re
 import pandas
 
@@ -8,13 +13,11 @@ df = pandas.DataFrame(data=df_init)
 
 content = []
 
-
 for file in os.listdir("resources/invalid_format"): 
 
     with open(f"resources/invalid_format/{file}", encoding="UTF-8") as f:
 
         soup = BeautifulSoup(f, "html.parser")
-        #print(soup.prettify())
 
         for tr in soup.find("tbody", {"class":"result_format"}).find_all("tr"):
 
@@ -28,10 +31,8 @@ for file in os.listdir("resources/invalid_format"):
             if td_list:
                 content.append(td_list)
 
-
         content_cleaned = [i for i in content if i != ["",""]]
         content_cleaned = [[i for i in l if i] for l in content_cleaned]
-
 
         print(content_cleaned)
 
@@ -39,12 +40,9 @@ for file in os.listdir("resources/invalid_format"):
 
             df.loc[len(df)] = [re.findall((r"\d{4}"), file), t[0],t[1],int(re.sub("\.|,", "", t[2])), t[3].replace(",","."), None]
 
-        print(file, "  DONE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1")
-
+        print(file, "  DONE!")
 
 print(df)
-df.to_csv(r"C:\Users\stefa\Desktop\results_inv_form.csv", header=True)
 
-   # print (file)
-
-
+csv_filename = input("Enter file name: ")
+df.to_csv(os.path.join(sys.path[0], "csv", f"{csv_filename}.csv"), header=True)
